@@ -1,0 +1,16 @@
+attrs==20.3.0
+Automat==20.2.0
+click==7.1.2
+constantly==15.1.0
+hyperlink==21.0.0
+idna==3.1
+incremental==21.3.0
+pkg-resources==0.0.0
+prompt-toolkit==3.0.17
+Pygments==2.8.1
+pymodbus==2.5.0
+pyserial==3.5
+six==1.15.0
+Twisted==21.2.0
+wcwidth==0.2.5
+zope.interface==5.2.0
