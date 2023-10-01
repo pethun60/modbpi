@@ -83,9 +83,10 @@ def get_commandline(server=False, description=None, extras=None, cmdline=None):
         type=str,
     )
     if server:
+        # added pttest
         parser.add_argument(
             "--store",
-            choices=["sequential", "sparse", "factory", "none"],
+            choices=["sequential", "sparse", "factory", "none", "pttest"],
             help="set type of datastore",
             default="sequential",
             type=str,
