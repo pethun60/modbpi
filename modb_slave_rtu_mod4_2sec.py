@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Pymodbus Asynchronous Server Example
 --------------------------------------------------------------------------
@@ -31,12 +31,27 @@ FORMAT = ('%(asctime)-15s %(threadName)-15s'
           ' %(levelname)-8s %(module)-15s:%(lineno)-8s %(message)s')
 logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
-my_value = int
+import time
+from threading import Thread
 
+change_var = 120
+interval_time =10
+store = ModbusSlaveContext(
+    di=ModbusSequentialDataBlock(0, [17]*100),
+    co=ModbusSequentialDataBlock(0, [17]*100),
+    hr=ModbusSequentialDataBlock(0x00, [change_var]*6000),
+    ir=ModbusSequentialDataBlock(0, [17]*100))
+store.register(CustomModbusRequest.function_code, 'cm',
+               ModbusSequentialDataBlock(0, [0]*100))
+context = ModbusServerContext(slaves=store, single=True)
 
+# Function to update Modbus registers 0-100
 def run_async_server():
+    global store
+    global context
+
     # ----------------------------------------------------------------------- # 
     # initialize your data store
     # ----------------------------------------------------------------------- # 
@@ -91,14 +106,14 @@ def run_async_server():
     #
     #     store = ModbusSlaveContext(..., zero_mode=True)
     # ----------------------------------------------------------------------- # 
-    store = ModbusSlaveContext(
-        di=ModbusSequentialDataBlock(0, [17]*100),
-        co=ModbusSequentialDataBlock(0, [17]*100),
-        hr=ModbusSequentialDataBlock(0x00, [my_value]*6000),
-        ir=ModbusSequentialDataBlock(0, [17]*100))
-    store.register(CustomModbusRequest.function_code, 'cm',
-                   ModbusSequentialDataBlock(0, [0]*100))
-    context = ModbusServerContext(slaves=store, single=True)
+    #store = ModbusSlaveContext(
+    #    di=ModbusSequentialDataBlock(0, [17]*100),
+    #    co=ModbusSequentialDataBlock(0, [17]*100),
+    #    hr=ModbusSequentialDataBlock(0x00, [change_var]*6000),
+    #    ir=ModbusSequentialDataBlock(0, [17]*100))
+    #store.register(CustomModbusRequest.function_code, 'cm',
+    #               ModbusSequentialDataBlock(0, [0]*100))
+    #context = ModbusServerContext(slaves=store, single=True)
     
     # ----------------------------------------------------------------------- # 
     # initialize the server information
@@ -157,8 +172,34 @@ def run_async_server():
     # Binary Server
     # StartSerialServer(context, identity=identity,
     #                   port='/dev/ttyp0', framer=ModbusBinaryFramer)
+    # Function to update Modbus registers 0-100
+
+
+def update_all_modbus_registers(start_address, end_address, value):
+    global context  # Declare global context
+    if context is not None:
+        # Update the values for all registers in the range start_address to end_address
+        context[0].setValues(3, start_address, [value] * (end_address - start_address + 1))
+        print ("Updated registers ", start_address, end_address, value)
+
+
 
 
 if __name__ == "__main__":
-    run_async_server()
+    #run_async_server()
+    server_thread = Thread(target=run_async_server, args=())
+    server_thread.daemon = True
+    server_thread.start()
+    while True :
+        change_var +=10
+    # Update registers 0-3000 with new values incremented by 10
+        update_all_modbus_registers(10, 99, change_var)
+        update_all_modbus_registers(522, 617, change_var)
+        update_all_modbus_registers(1034, 1121, change_var)
+        update_all_modbus_registers(1546, 1633, change_var)
+        update_all_modbus_registers(2570, 2718, change_var)
+        if change_var > 1000 :
+            change_var = 0
+        time.sleep(2) 
+
 
